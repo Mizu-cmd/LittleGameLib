@@ -1,0 +1,6 @@
+name: LittleGamesLib
+version: '${project.version}'
+main: fr.mizu.littlegameslib.LittleGamesLib
+commands:
+  uhc:
+    description: shows help
