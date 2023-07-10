@@ -3,6 +3,9 @@ package fr.mizu.littlegameslib.listeners;
 import fr.mizu.littlegameslib.game.Game;
 import fr.mizu.littlegameslib.game.GameListener;
 import fr.mizu.littlegameslib.game.GamePlayer;
+import fr.mizu.littlegameslib.game.event.events.PlayerDamagesAnotherGE;
+import fr.mizu.littlegameslib.game.event.events.PlayerGetsKilledByAnotherGE;
+import fr.mizu.littlegameslib.game.event.events.PlayerTakesDamageGE;
 import fr.mizu.littlegameslib.game.types.PlayerType;
 import fr.mizu.littlegameslib.managers.PlayerManager;
 import org.bukkit.OfflinePlayer;
@@ -49,16 +52,12 @@ public class PlayerPVPListener implements Listener {
 
         if((player.getOnlinePlayer().getHealth() - e.getFinalDamage() <= 0)){
 
-            for (GameListener listener : game.getListeners()){
-                listener.onPlayerGetKilledByAnother(player, damager, game.getState());
-            }
+            game.getEventManager().call(new PlayerGetsKilledByAnotherGE(game.getState(), damager, player, e));
 
             if (game.getSettings(PlayerType.PLAYER).countKills())
                 game.increaseKill(damager, 1);
         } else {
-            for (GameListener listener : game.getListeners()){
-                listener.onPlayerDamageAnother(player, damager, e, game.getState());
-            }
+            game.getEventManager().call(new PlayerDamagesAnotherGE(game.getState(), damager, player, e));
         }
     }
 
@@ -68,8 +67,7 @@ public class PlayerPVPListener implements Listener {
 
         GamePlayer player = PlayerManager.getGamePlayer((OfflinePlayer) e.getEntity());
         if (!player.isInGame() || !player.isOnline()) return;
-        for (GameListener listener : player.getGame().getListeners()) {
-            listener.onPlayerTakesDamage(player, e, player.getGame().getState());
-        }
+
+        player.getGame().getEventManager().call(new PlayerTakesDamageGE(player, player.getGame().getState(), e));
     }
 }

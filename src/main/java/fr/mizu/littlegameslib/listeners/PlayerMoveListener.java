@@ -3,6 +3,8 @@ package fr.mizu.littlegameslib.listeners;
 import fr.mizu.littlegameslib.game.Game;
 import fr.mizu.littlegameslib.game.GameArea;
 import fr.mizu.littlegameslib.game.GamePlayer;
+import fr.mizu.littlegameslib.game.event.events.PlayerEnterAreaGE;
+import fr.mizu.littlegameslib.game.event.events.PlayerLeaveAreaGE;
 import fr.mizu.littlegameslib.managers.PlayerManager;
 import fr.mizu.littlegameslib.utils.LocationUtil;
 import org.bukkit.Location;
@@ -30,10 +32,10 @@ public class PlayerMoveListener implements Listener {
                 }
                 Game game = player.getGame();
                 if(fromIsIn && !toIsIn){
-                    game.getListeners().forEach(listener -> listener.onPlayerLeaveArea(player,area,game.getState()));
+                    game.getEventManager().call(new PlayerLeaveAreaGE(player, game.getState(), area));
 
                 }else if(!fromIsIn && toIsIn){
-                    game.getListeners().forEach(listener -> listener.onPlayerEnterArea(player,area,game.getState()));
+                    game.getEventManager().call(new PlayerEnterAreaGE(player, game.getState(), area));
                 }
             }
         }

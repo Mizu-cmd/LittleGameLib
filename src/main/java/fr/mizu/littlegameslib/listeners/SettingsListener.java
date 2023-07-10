@@ -2,7 +2,10 @@ package fr.mizu.littlegameslib.listeners;
 
 import fr.mizu.littlegameslib.game.GameListener;
 import fr.mizu.littlegameslib.game.GamePlayer;
+import fr.mizu.littlegameslib.game.event.GameEvent;
 import fr.mizu.littlegameslib.game.event.events.BlockBreakGE;
+import fr.mizu.littlegameslib.game.event.events.BlockPlacedGE;
+import fr.mizu.littlegameslib.game.event.events.FoodLevelChangeGE;
 import fr.mizu.littlegameslib.managers.PlayerManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,9 +22,7 @@ public class SettingsListener implements Listener {
 
         if (!player.isInGame() || !player.isOnline()) return;
 
-        for (GameListener listener : player.getGame().getListeners()){
-           listener.onBlockPlace(player, e, player.getGame().getState());
-        }
+        player.getGame().getEventManager().call(new BlockPlacedGE(player, player.getGame().getState(), e));
 
         if(!player.getSettings().isCanPlaceBlocks()) e.setCancelled(true);
     }
@@ -44,7 +45,7 @@ public class SettingsListener implements Listener {
 
         if (!gamePlayer.isInGame() || !gamePlayer.isOnline()) return;
 
-        gamePlayer.getGame().getListeners().forEach(listener -> listener.onFoodLevelChange(gamePlayer, e, gamePlayer.getGame().getState()));
+        gamePlayer.getGame().getEventManager().call(new FoodLevelChangeGE(gamePlayer, gamePlayer.getGame().getState(), e));
 
         if(!gamePlayer.getSettings().isCanFoodLevelChange()) e.setCancelled(true);
     }
@@ -54,10 +55,6 @@ public class SettingsListener implements Listener {
         GamePlayer player = PlayerManager.getGamePlayer(e.getPlayer());
 
         if (!player.isInGame() || !player.isOnline()) return;
-
-        for (GameListener listener : player.getGame().getListeners()){
-            listener.onBlockBreak(player, e, player.getGame().getState());
-        }
 
         player.getGame().getEventManager().call(new BlockBreakGE(player, player.getGame().getState()));
 

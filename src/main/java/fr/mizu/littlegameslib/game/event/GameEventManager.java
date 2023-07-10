@@ -29,7 +29,7 @@ public class GameEventManager {
                 if (method.isAnnotationPresent(GameEventHandler.class)){
                     try {
                         Class<?>[] parameters = method.getParameterTypes();
-                        if (parameters.length == 1 && GameEvent.class.isAssignableFrom(parameters[0])){
+                        if (parameters.length == 1 && event.getClass() == parameters[0]){
                             method.invoke(listener.getClass().newInstance(), event);
                         }
                     } catch (InvocationTargetException | IllegalAccessException | InstantiationException e) {
