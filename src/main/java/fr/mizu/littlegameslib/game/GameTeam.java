@@ -82,6 +82,7 @@ public class GameTeam {
     }
 
     public void removePlayer(GamePlayer player){
+        if (!this.players.contains(player)) return;
         this.players.remove(player);
         player.setTeam(null);
     }

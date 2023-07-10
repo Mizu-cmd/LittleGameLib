@@ -1,16 +1,21 @@
 package fr.mizu.littlegameslib.game;
 
+import com.onarandombox.MultiverseCore.MultiverseCore;
+import com.onarandombox.MultiverseCore.api.MVWorldManager;
+import fr.mizu.littlegameslib.LittleGamesLib;
+import fr.mizu.littlegameslib.annotation.GameEventHandler;
 import fr.mizu.littlegameslib.arena.Arena;
+import fr.mizu.littlegameslib.game.event.GameEventManager;
+import fr.mizu.littlegameslib.game.event.events.JoinGameGE;
+import fr.mizu.littlegameslib.game.event.events.LeaveGameGE;
+import fr.mizu.littlegameslib.game.types.IPlayerType;
 import fr.mizu.littlegameslib.game.types.PlayerType;
-import fr.mizu.littlegameslib.misc.scoreboard.FastBoard;
-import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,14 +25,13 @@ public class Game {
     private GameState state;
     private Arena arena;
     private World world;
-    private List<GameListener> listeners;
-    private HashMap<PlayerType, GameSettings> settings = new HashMap<>();
+    private HashMap<IPlayerType, GameSettings> settings = new HashMap<>();
     private GameProperty properties;
     private List<GamePlayer> players;
     private List<GameArea> areas;
     private List<GameTeam> teams;
-    private HashMap<GamePlayer, FastBoard> boards = new HashMap<>();
-    private HashMap<GamePlayer, Integer> kills = new HashMap<GamePlayer, Integer>();
+    private GameEventManager eventManager;
+    private HashMap<GamePlayer, Integer> kills = new HashMap<>();
 
     public Game(String id, Arena arena, GameProperty properties, GameState state){
         this.world = arena.cloneArena();
@@ -37,8 +41,8 @@ public class Game {
         this.settings.put(PlayerType.PLAYER, new GameSettings());
         this.areas = new ArrayList<>();
         this.teams = new ArrayList<>();
-        this.listeners = new ArrayList<>();
         this.properties = properties;
+        this.eventManager = new GameEventManager();
         this.setState(state);
         arena.getPlugin().getGames().add(this);
     }
@@ -49,36 +53,47 @@ public class Game {
 
         if (players.size() >= this.properties.getMaxPlayers()) return;
 
-        player.setLanguage(arena.getPlugin().getDefaultLanguage());
-        player.setGame(this);
-        this.players.add(player);
         player.getOnlinePlayer().teleport(world.getSpawnLocation());
 
-        listeners.forEach(listener -> listener.onPlayerJoin(player, state));
+        player.setLanguage(arena.getPlugin().getDefaultLanguage());
+        player.setGame(this);
 
-        if (properties.isUseTeam()){
-            for (GameTeam team : teams){
-                if (!team.isFull()){
-                    team.addPlayer(player);
-                    player.setItem(arena.getPlugin().getTeamItemStack(), 4);
-                    break;
+        this.players.add(player);
+
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (properties.isUseTeam()){
+                    for (GameTeam team : teams){
+                        if (!team.isFull()){
+                            team.addPlayer(player);
+                            player.setItem(arena.getPlugin().getTeamItemStack(), 4);
+                            break;
+                        }
+                    }
                 }
             }
-        }
+        }.runTaskLaterAsynchronously(LittleGamesLib.Instance, 5l);
+
+        eventManager.call(new JoinGameGE(player, state));
     }
     public void leaveGame(GamePlayer player){
         if (!player.isInGame()) return;
-        if (!player.isOnline()) return;
 
         this.players.remove(player);
-        player.getTeam().removePlayer(player);
+
+
+        if (player.isOnline()){
+            player.getOnlinePlayer().teleport(getMainLobby());
+        }
+
+        if (player.getTeam() != null) player.getTeam().removePlayer(player);
+
         player.getPlayerItems().clear();
         player.setGame(null);
         player.resetPlayer();
-        boards.get(player).delete();
-        boards.remove(player);
 
-        listeners.forEach(listener -> listener.onPlayerLeave(player, state));
+        eventManager.call(new LeaveGameGE(player, state));
 
         if (players.size() == 0) stopGame();
     }
@@ -89,33 +104,26 @@ public class Game {
             gamePlayer.setGame(null);
             gamePlayer.setTeam(null);
             gamePlayer.setType(PlayerType.PLAYER);
-
-            if (boards.containsKey(gamePlayer))
-                boards.get(gamePlayer).delete();
             gamePlayer.resetPlayer();
         }
         this.resetWorld();
         players.clear();
         state.cancelState();
         teams.clear();
-        boards.clear();
         kills.clear();
         arena.getPlugin().getGames().remove(this);
     }
     private void resetWorld(){
-        try {
-            for (Chunk c : world.getLoadedChunks()) {
-                c.unload();
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                MultiverseCore core = (MultiverseCore) Bukkit.getServer().getPluginManager().getPlugin("Multiverse-Core");
+                MVWorldManager worldManager = core.getMVWorldManager();
+
+                worldManager.deleteWorld(world.getName(), true, true);
+                worldManager.removeWorldFromConfig(world.getName());
             }
-            Bukkit.unloadWorld(world, true);
-            Bukkit.getServer().getWorlds().remove(world);
-            FileUtils.deleteDirectory(world.getWorldFolder());
-
-            this.world = null;
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        }.runTaskLater(LittleGamesLib.Instance, 20*5);
     }
 
     public int getKills(GamePlayer player){
@@ -163,25 +171,16 @@ public class Game {
         areas.add(area);
     }
 
-    public List<GameListener> getListeners() {
-        return listeners;
+    public void addEventListener(GameListener listener) {
+        eventManager.register(listener);
     }
 
-    public void addListener(GameListener listener){
-        listeners.add(listener);
+    public void removeEventListener(GameListener listener){
+        eventManager.unregister(listener);
     }
-
 
     public Arena getArena() {
         return arena;
-    }
-
-    public HashMap<GamePlayer, FastBoard> getBoards() {
-        return boards;
-    }
-
-    public void setBoards(HashMap<GamePlayer, FastBoard> boards) {
-        this.boards = boards;
     }
 
     public List<GameTeam> getTeamsAlive(){
@@ -239,7 +238,6 @@ public class Game {
 
     public Location getMainLobby(){
         Location loc = arena.getMainLobby();
-        loc.setWorld(world);
         return loc;
     }
 
@@ -256,5 +254,13 @@ public class Game {
             locs.add(loc);
         }
         return locs;
+    }
+
+    public GameEventManager getEventManager() {
+        return eventManager;
+    }
+
+    public GameSettings getSettings(PlayerType type){
+        return this.settings.get(type);
     }
 }

@@ -1,5 +1,5 @@
 package fr.mizu.littlegameslib.game.types;
 
-public enum PlayerType {
+public enum PlayerType implements IPlayerType {
     PLAYER,SPECTATOR
 }

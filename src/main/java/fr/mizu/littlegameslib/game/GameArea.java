@@ -10,7 +10,6 @@ public class GameArea {
     private Location loc1;
     private Location loc2;
     private String name;
-    private ArenaSettings arenaSettings;
     private boolean useSettings;
 
     /**
@@ -35,7 +34,6 @@ public class GameArea {
         this.loc1 = new Location(loc1.getWorld(), x1, y1, z1);
         this.loc2 = new Location(loc2.getWorld(), x2, y2, z2);
         this.name = name;
-        this.arenaSettings = new ArenaSettings();
         this.useSettings = false;
     }
 
@@ -49,60 +47,16 @@ public class GameArea {
         return new Location(loc1.getWorld(), x, y, z);
     }
 
-    public boolean useSettings() {
-        return useSettings;
-    }
 
-    public void setUseSettings(boolean useSettings) {
-        this.useSettings = useSettings;
-    }
-
-    /**
-     * Checks whether or not a player is in the area.
-     * @return True if player is in area, false otherwise.
-     */
-    public boolean isPlayerInArea(){
-        return false;
-    }
-
-    /**
-     * Returns a list of players in the area.
-     * @return List<GamePlayer> players.
-     */
-    public List<GamePlayer> getPlayersInArea(){
-        return new ArrayList<GamePlayer>();
-    }
-
-    /**
-     * Get the settings for this area.
-     * @return ArenaSettings for this area.
-     */
-    public ArenaSettings getSettings(){
-        return arenaSettings;
-    }
-
-    /**
-     * Get the first (corner) location of this area.
-     * @return Location object.
-     */
-    public Location getLocation1(){
+    public Location getLoc1() {
         return loc1;
     }
 
-    /**
-     * Get the second (corner) location of this area.
-     * @return Location object.
-     */
-    public Location getLocation2(){
+    public Location getLoc2() {
         return loc2;
     }
 
-    /**
-     * Get the set name for this area.
-     * @return String name.
-     */
-    public String getName(){
+    public String getName() {
         return name;
     }
-
 }

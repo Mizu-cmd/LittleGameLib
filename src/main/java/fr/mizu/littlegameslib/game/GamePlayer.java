@@ -2,7 +2,10 @@ package fr.mizu.littlegameslib.game;
 
 import fr.mizu.littlegameslib.Internationalization.I18N;
 import fr.mizu.littlegameslib.game.types.PlayerType;
+import fr.mizu.littlegameslib.misc.bossbar.BossBar;
+import fr.mizu.littlegameslib.misc.scoreboard.GameBoard;
 import fr.mizu.littlegameslib.utils.LocationUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -17,6 +20,8 @@ public class GamePlayer {
     private Game game;
     private PlayerType type;
     private I18N language;
+    private GameBoard board;
+    private BossBar bossBar;
     private HashMap<ItemStack, GameItem> playerItems = new HashMap<>();
     public GamePlayer(OfflinePlayer player)
     {
@@ -32,6 +37,8 @@ public class GamePlayer {
         p.setExp(0);
         p.getInventory().clear();
         p.getActivePotionEffects().clear();
+        this.destroyBoard();
+        this.destroyBossBar();
     }
 
     public void setPlayer(OfflinePlayer player) {
@@ -86,10 +93,58 @@ public class GamePlayer {
         if(!this.isOnline()) return null;
         List<GameArea> areas = new ArrayList<GameArea>();
         for(GameArea area : this.getGame().getAreas()){
-            if(LocationUtil.isInArea(this.getOnlinePlayer().getLocation(), area.getLocation1(), area.getLocation2()))
+            if(LocationUtil.isInArea(this.getOnlinePlayer().getLocation(), area.getLoc1(), area.getLoc2()))
                 areas.add(area);
         }
         return areas;
+    }
+
+    /**
+     *
+     * @return the player's scoreboard or a new empty one if there is none
+     */
+    public GameBoard getBoard(){
+        if (board != null) return board;
+        else {
+            this.board = new GameBoard(this, "empty");
+            return board;
+        }
+    }
+
+    /**
+     * use this method to hide scoreboard from player
+     */
+    public void destroyBoard(){
+        if (!hasBoard()) return;
+
+        player.getPlayer().setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+        this.board = null;
+    }
+
+    public boolean hasBoard(){
+        return board != null;
+    }
+
+    /**
+     *
+     * @return the player's boss bar or a new empty one if there is none
+     */
+    public BossBar getBossBar(){
+        if (bossBar != null) return bossBar;
+        else {
+            this.bossBar = new BossBar(player.getPlayer(), "empty");
+            return bossBar;
+        }
+    }
+
+    public boolean hasBossBar(){
+        return bossBar != null;
+    }
+
+    public void destroyBossBar(){
+        if (!hasBossBar()) return;
+
+        bossBar.destroy();
     }
 
     public HashMap<ItemStack, GameItem> getPlayerItems() {
@@ -103,5 +158,9 @@ public class GamePlayer {
     public void setItem(GameItem item, int slot){
         playerItems.put(item.itemStack(), item);
         getOnlinePlayer().getInventory().setItem(slot, item.itemStack());
+    }
+
+    public GameSettings getSettings(){
+        return game.getSettings(type);
     }
 }

@@ -1,5 +1,7 @@
 package fr.mizu.littlegameslib.arena;
 
+import com.onarandombox.MultiverseCore.MultiverseCore;
+import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import fr.mizu.littlegameslib.MiniGamePlugin;
 import fr.mizu.littlegameslib.config.ConfigFile;
 import org.apache.commons.io.FileUtils;
@@ -42,6 +44,7 @@ public class Arena {
     public void saveArena(){
         arenaConfig.set("id", id);
         arenaConfig.set("world", world.getUID().toString());
+        arenaConfig.set("world-name", world.getName());
         arenaConfig.set("loc1", loc1);
         arenaConfig.set("loc2", loc2);
         arenaConfig.set("lobby", lobby);
@@ -69,20 +72,17 @@ public class Arena {
     }
 
     public World cloneArena(){
-        try {
-            File worldDir = world.getWorldFolder();
-            File dest = new File(plugin.getServer().getWorldContainer().getAbsolutePath()+"/Games/"+UUID.randomUUID());
-            if (!dest.exists()) {
-                FileUtils.copyDirectory(worldDir,dest);
-                new File(dest+"/uid.dat").delete();
-            }
-            World cloned = Bukkit.createWorld(new WorldCreator("/Games/"+dest.getName()));
-            Bukkit.getServer().getWorlds().add(cloned);
-            System.out.println("Arena cloned !");
-            return cloned;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        MultiverseCore core = (MultiverseCore) Bukkit.getServer().getPluginManager().getPlugin("Multiverse-Core");
+        MVWorldManager worldManager = core.getMVWorldManager();
+
+        String name = "/Games/"+UUID.randomUUID();
+
+        worldManager.cloneWorld(world.getName(), name);
+
+        System.out.println("Arena cloned !");
+
+        return Bukkit.getWorld(name);
+
     }
 
     public void setLoc1(Location loc1) {

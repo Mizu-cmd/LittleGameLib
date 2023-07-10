@@ -11,7 +11,6 @@ public abstract class GameListener {
     public  void onPlayerLeave(GamePlayer player, GameState state) { }
     public void onPlayerGetKilledByAnother(GamePlayer victim, GamePlayer killer, GameState state) { }
     public void onPlayerDamageAnother(GamePlayer victim, GamePlayer killer, EntityDamageByEntityEvent e, GameState state) { }
-
     public void onPlayerTakesDamage(GamePlayer player, EntityDamageEvent e, GameState state) { }
     public void onFoodLevelChange(GamePlayer player, FoodLevelChangeEvent e, GameState state) { }
     public void onBlockPlace(GamePlayer player, BlockPlaceEvent e, GameState state) { }

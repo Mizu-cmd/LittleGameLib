@@ -13,9 +13,7 @@ public class GameSettings {
     private boolean canInteract;
     private boolean countKills;
 
-    public void setCountKills(boolean countKills) {
-        this.countKills = countKills;
-    }
+    private boolean canSendCommands;
 
     public GameSettings(){
         this.canBreakBlocks = true;
@@ -28,8 +26,13 @@ public class GameSettings {
         this.canMoveInventory = true;
         this.canInteract = true;
         this.countKills = true;
+        this.canSendCommands = false;
     }
+
     public boolean countKills(){ return countKills; }
+    public void setCountKills(boolean countKills) {
+        this.countKills = countKills;
+    }
 
     public boolean isCanBreakBlocks() {
         return canBreakBlocks;
@@ -97,6 +100,14 @@ public class GameSettings {
 
     public boolean isCanInteract() {
         return canInteract;
+    }
+
+    public boolean isCanSendCommands() {
+        return canSendCommands;
+    }
+
+    public void setCanSendCommands(boolean canSendCommands) {
+        this.canSendCommands = canSendCommands;
     }
 
     public void setCanInteract(boolean canInteract) {

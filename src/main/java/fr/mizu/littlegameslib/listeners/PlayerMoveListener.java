@@ -18,8 +18,8 @@ public class PlayerMoveListener implements Listener {
             for(GameArea area : player.getGame().getAreas()){
                 Location f = e.getFrom();
                 Location t = e.getTo();
-                Location l1 = area.getLocation1();
-                Location l2 = area.getLocation2();
+                Location l1 = area.getLoc1();
+                Location l2 = area.getLoc2();
                 boolean fromIsIn = false;
                 boolean toIsIn = false;
                 if(LocationUtil.isInArea(f, l1, l2)){

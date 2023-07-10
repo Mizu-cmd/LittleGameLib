@@ -24,7 +24,9 @@ public class ItemListener implements Listener {
         GameItem gameItem = player.getPlayerItems().get(item);
         if (gameItem == null) return;
 
-        //if (!gameItem.canInteract()) e.setCancelled(true);
+        if (!player.getSettings().isCanInteract()) e.setCancelled(true);
+
+        if (!gameItem.canInteract()) e.setCancelled(true);
         gameItem.onInteract(player, e);
     }
 
@@ -39,6 +41,7 @@ public class ItemListener implements Listener {
         GameItem gameItem = player.getPlayerItems().get(item);
         if (gameItem == null) return;
 
+        if (!player.getSettings().isCanDrop()) e.setCancelled(true);
         if (!gameItem.canDrop()) e.setCancelled(true);
         gameItem.onDrop(player, e);
     }
@@ -54,6 +57,7 @@ public class ItemListener implements Listener {
         GameItem gameItem = player.getPlayerItems().get(item);
         if (gameItem == null) return;
 
+        if (!player.getSettings().isCanMoveInventory()) e.setCancelled(true);
         if (!gameItem.canMove()) e.setCancelled(true);
         gameItem.onClick(player, e);
     }

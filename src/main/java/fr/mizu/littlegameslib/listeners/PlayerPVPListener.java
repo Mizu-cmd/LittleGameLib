@@ -3,6 +3,7 @@ package fr.mizu.littlegameslib.listeners;
 import fr.mizu.littlegameslib.game.Game;
 import fr.mizu.littlegameslib.game.GameListener;
 import fr.mizu.littlegameslib.game.GamePlayer;
+import fr.mizu.littlegameslib.game.types.PlayerType;
 import fr.mizu.littlegameslib.managers.PlayerManager;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Arrow;
@@ -52,7 +53,7 @@ public class PlayerPVPListener implements Listener {
                 listener.onPlayerGetKilledByAnother(player, damager, game.getState());
             }
 
-            if (game.getSettings().countKills())
+            if (game.getSettings(PlayerType.PLAYER).countKills())
                 game.increaseKill(damager, 1);
         } else {
             for (GameListener listener : game.getListeners()){
